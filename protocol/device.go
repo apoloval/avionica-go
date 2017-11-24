@@ -19,8 +19,8 @@ func (dev *Device) ConfigurePorts(config PortConfig) error {
 		prevBitmask := dev.portConfig.Bitmask(port)
 		newBitmask := config.Bitmask(port)
 		if prevBitmask != newBitmask {
-			msg := Message{Port: port.Byte(), Data: uint16(newBitmask)}
-			err := msg.Encode(dev.raw)
+			msg := message{Port: port.Byte(), Data: uint16(newBitmask)}
+			err := msg.encode(dev.raw)
 			if err != nil {
 				return err
 			}

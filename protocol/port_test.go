@@ -47,3 +47,32 @@ func TestDataPort_Control(t *testing.T) {
 		assert.Equal(t, test.bitmask, bitmask)
 	}
 }
+
+func TestPortConfig_Enable(t *testing.T) {
+	cfg := NewPortConfig()
+
+	cfg.Enable(MustDataPort(0))
+	assert.Equal(t, ControlBitmask(0x0001), cfg.Bitmask(MustControlPort(128)))
+
+	cfg.Enable(MustDataPort(1))
+	assert.Equal(t, ControlBitmask(0x0003), cfg.Bitmask(MustControlPort(128)))
+
+	cfg.Enable(MustDataPort(15))
+	assert.Equal(t, ControlBitmask(0x8003), cfg.Bitmask(MustControlPort(128)))
+
+	cfg.Enable(MustDataPort(16))
+	assert.Equal(t, ControlBitmask(0x0001), cfg.Bitmask(MustControlPort(129)))
+
+	cfg.Enable(MustDataPort(31))
+	assert.Equal(t, ControlBitmask(0x8001), cfg.Bitmask(MustControlPort(129)))
+}
+
+func TestPortConfig_Disable(t *testing.T) {
+	cfg := NewPortConfig()
+
+	cfg.Enable(MustDataPort(0))
+	cfg.Enable(MustDataPort(1))
+	cfg.Enable(MustDataPort(2))
+	cfg.Disable(MustDataPort(1))
+	assert.Equal(t, ControlBitmask(0x0005), cfg.Bitmask(MustControlPort(128)))
+}

@@ -5,34 +5,29 @@ import (
 )
 
 const (
-	portDataMax      = 128
-	portDataLast     = portDataMax - 1
-	portWordSize     = 16
-	portControlFirst = portDataMax
-	portControlMax   = portDataMax / portWordSize
-	portControlLast  = portControlFirst + portControlMax - 1
+	portDataMax    = 128
+	portWordSize   = 16
+	portControlMax = portDataMax / portWordSize
+
+	portDataLast     = Port(portDataMax - 1)
+	portControlFirst = Port(portDataMax)
+	portControlLast  = Port(portControlFirst + portControlMax - 1)
 )
 
-type BasicPort struct {
-	raw byte
-}
-
-func (p BasicPort) Byte() byte {
-	return p.raw
-}
+type Port byte
 
 type DataPort struct {
-	BasicPort
+	raw Port
 }
 
-func NewDataPort(raw byte) (DataPort, error) {
+func NewDataPort(raw Port) (DataPort, error) {
 	if raw <= portDataLast {
-		return DataPort{BasicPort{raw}}, nil
+		return DataPort{raw}, nil
 	}
 	return DataPort{}, fmt.Errorf("invalid dataport %v", raw)
 }
 
-func MustDataPort(raw byte) DataPort {
+func MustDataPort(raw Port) DataPort {
 	port, err := NewDataPort(raw)
 	if err != nil {
 		panic(err)
@@ -40,28 +35,24 @@ func MustDataPort(raw byte) DataPort {
 	return port
 }
 
-func (p DataPort) Byte() byte {
-	return p.raw
-}
-
 func (p DataPort) Control() (ControlPort, ControlBitmask) {
-	port := ControlPort{BasicPort{portControlFirst + p.raw/portWordSize}}
+	port := ControlPort{Port(portControlFirst + p.raw/portWordSize)}
 	bitmask := ControlBitmask(1 << (p.raw % portWordSize))
 	return port, bitmask
 }
 
 type ControlPort struct {
-	BasicPort
+	raw Port
 }
 
-func NewControlPort(raw byte) (ControlPort, error) {
+func NewControlPort(raw Port) (ControlPort, error) {
 	if raw >= portControlFirst && raw <= portControlLast {
-		return ControlPort{BasicPort{raw}}, nil
+		return ControlPort{Port(raw)}, nil
 	}
 	return ControlPort{}, fmt.Errorf("invalid controlport %v", raw)
 }
 
-func MustControlPort(raw byte) ControlPort {
+func MustControlPort(raw Port) ControlPort {
 	port, err := NewControlPort(raw)
 	if err != nil {
 		panic(err)
@@ -81,24 +72,24 @@ func NewPortConfig() PortConfig {
 
 func (pc PortConfig) IsEnabled(port DataPort) bool {
 	cp, cbm := port.Control()
-	index := cp.Byte() - portControlFirst
+	index := cp.raw - portControlFirst
 	return pc.raw[index]&cbm > 0
 }
 
 func (pc PortConfig) Enable(port DataPort) {
 	cp, cbm := port.Control()
-	index := cp.Byte() - portControlFirst
+	index := cp.raw - portControlFirst
 	pc.raw[index] |= cbm
 }
 
 func (pc PortConfig) Disable(port DataPort) {
 	cp, cbm := port.Control()
-	index := cp.Byte() - portControlFirst
+	index := cp.raw - portControlFirst
 	pc.raw[index] &= ^cbm
 }
 
 func (pc PortConfig) Bitmask(port ControlPort) ControlBitmask {
-	index := port.Byte() - portControlFirst
+	index := port.raw - portControlFirst
 	return pc.raw[index]
 }
 

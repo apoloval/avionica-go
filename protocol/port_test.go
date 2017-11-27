@@ -8,7 +8,7 @@ import (
 
 func TestNewDataPort(t *testing.T) {
 	tests := []struct {
-		raw   byte
+		raw   Port
 		valid bool
 	}{
 		{raw: 0, valid: true},
@@ -21,7 +21,7 @@ func TestNewDataPort(t *testing.T) {
 		p, err := NewDataPort(test.raw)
 		if test.valid {
 			assert.NoError(t, err)
-			assert.Equal(t, test.raw, p.Byte())
+			assert.Equal(t, test.raw, p.raw)
 		} else {
 			assert.Error(t, err)
 		}
@@ -30,8 +30,8 @@ func TestNewDataPort(t *testing.T) {
 
 func TestDataPort_Control(t *testing.T) {
 	tests := []struct {
-		raw     byte
-		control byte
+		raw     Port
+		control Port
 		bitmask ControlBitmask
 	}{
 		{raw: 0, control: 128, bitmask: 0x0001},
@@ -43,7 +43,7 @@ func TestDataPort_Control(t *testing.T) {
 		p, _ := NewDataPort(test.raw)
 		ctrl, bitmask := p.Control()
 
-		assert.Equal(t, test.control, ctrl.Byte())
+		assert.Equal(t, test.control, ctrl.raw)
 		assert.Equal(t, test.bitmask, bitmask)
 	}
 }

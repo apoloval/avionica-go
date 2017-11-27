@@ -14,12 +14,12 @@ func NewDevice(raw io.ReadWriteCloser) Device {
 }
 
 func (dev *Device) ConfigurePorts(config PortConfig) error {
-	for rawPort := byte(portControlFirst); rawPort <= portControlLast; rawPort++ {
+	for rawPort := Port(portControlFirst); rawPort <= portControlLast; rawPort++ {
 		port := MustControlPort(rawPort)
 		prevBitmask := dev.portConfig.Bitmask(port)
 		newBitmask := config.Bitmask(port)
 		if prevBitmask != newBitmask {
-			msg := message{Port: port.Byte(), Data: uint16(newBitmask)}
+			msg := Message{Port: port.raw, Data: MessageData(newBitmask)}
 			err := msg.encode(dev.raw)
 			if err != nil {
 				return err
@@ -30,7 +30,7 @@ func (dev *Device) ConfigurePorts(config PortConfig) error {
 	return nil
 }
 
-func (dev *Device) Write(port DataPort, data uint16) error {
-	msg := message{Port: port.Byte(), Data: data}
+func (dev *Device) Write(port DataPort, data MessageData) error {
+	msg := Message{Port: port.raw, Data: data}
 	return msg.encode(dev.raw)
 }

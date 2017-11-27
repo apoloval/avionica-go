@@ -5,15 +5,17 @@ import (
 	"io"
 )
 
-type message struct {
-	Port byte
-	Data uint16
+type MessageData uint16
+
+type Message struct {
+	Port Port
+	Data MessageData
 }
 
-func (m message) encode(writer io.Writer) error {
+func (m Message) encode(writer io.Writer) error {
 	return binary.Write(writer, binary.BigEndian, m)
 }
 
-func decodeMessage(reader io.Reader, msg *message) error {
+func decodeMessage(reader io.Reader, msg *Message) error {
 	return binary.Read(reader, binary.BigEndian, msg)
 }

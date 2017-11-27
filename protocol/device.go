@@ -29,3 +29,8 @@ func (dev *Device) ConfigurePorts(config PortConfig) error {
 	dev.portConfig = config.Copy()
 	return nil
 }
+
+func (dev *Device) Write(port DataPort, data uint16) error {
+	msg := message{Port: port.Byte(), Data: data}
+	return msg.encode(dev.raw)
+}

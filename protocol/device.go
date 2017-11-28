@@ -54,7 +54,7 @@ func (dev *Device) AddHandler(port Port) chan MessageData {
 	dev.mutex.Lock()
 	defer dev.mutex.Unlock()
 
-	return dev.handlers.AddHandler(port)
+	return dev.handlers.addHandler(port)
 }
 
 func (dev *Device) Close() error {
@@ -66,10 +66,11 @@ func (dev *Device) readLoop() {
 	for {
 		if err := decodeMessage(dev.raw, &msg); err != nil {
 			logger.Errorf("Failed to decode Message from device: %s", err)
+			dev.handlers.closeAll()
 			return
 		}
 		dev.mutex.Lock()
-		dev.handlers.Handle(msg)
+		dev.handlers.handle(msg)
 		dev.mutex.Unlock()
 	}
 }
@@ -80,7 +81,7 @@ func newMessageHandlers() messageHandlers {
 	return make(messageHandlers)
 }
 
-func (mh messageHandlers) AddHandler(port Port) chan MessageData {
+func (mh messageHandlers) addHandler(port Port) chan MessageData {
 	c := make(chan MessageData, deviceReadChannelBufferSize)
 	handlers := mh.handlersFor(port)
 	handlers = append(handlers, c)
@@ -88,11 +89,19 @@ func (mh messageHandlers) AddHandler(port Port) chan MessageData {
 	return c
 }
 
-func (mh messageHandlers) Handle(msg Message) {
+func (mh messageHandlers) handle(msg Message) {
 	logger.Debugf("Handling read from port 0x%x, value 0x%x", msg.Port, msg.Data)
 	handlers := mh.handlersFor(msg.Port)
 	for _, handler := range handlers {
 		handler <- msg.Data
+	}
+}
+
+func (mh messageHandlers) closeAll() {
+	for _, handlers := range mh {
+		for _, handler := range handlers {
+			close(handler)
+		}
 	}
 }
 

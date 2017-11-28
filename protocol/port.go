@@ -35,6 +35,10 @@ func MustDataPort(raw Port) DataPort {
 	return port
 }
 
+func (p DataPort) Basic() Port {
+	return p.raw
+}
+
 func (p DataPort) Control() (ControlPort, ControlBitmask) {
 	port := ControlPort{Port(portControlFirst + p.raw/portWordSize)}
 	bitmask := ControlBitmask(1 << (p.raw % portWordSize))

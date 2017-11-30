@@ -1,19 +1,20 @@
 package protocol
 
 import (
-	"github.com/jacobsa/go-serial/serial"
+	"github.com/tarm/serial"
 )
 
-func NewSerialDevice(portName string, baudRate uint) (*Device, error) {
-	opts := serial.OpenOptions{
-		PortName:        portName,
-		BaudRate:        baudRate,
-		DataBits:        8,
-		StopBits:        1,
-		MinimumReadSize: 1,
+func NewSerialDevice(portName string, baudRate int) (*Device, error) {
+	config := serial.Config{
+		Name: portName,
+		Baud: baudRate,
 	}
-	port, err := serial.Open(opts)
+	port, err := serial.OpenPort(&config)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := port.Flush(); err != nil {
 		return nil, err
 	}
 

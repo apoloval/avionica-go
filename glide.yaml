@@ -2,4 +2,4 @@ package: github.com/apoloval/avionica-go
 import:
 - package: github.com/stretchr/testify
 - package: github.com/op/go-logging
-- package: github.com/jacobsa/go-serial
+- package: github.com/tarm/serial

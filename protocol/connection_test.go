@@ -13,8 +13,8 @@ func TestConnectionHeader_Decode(t *testing.T) {
 	err := decodeConnectionHeader(bytes.NewReader(buf), &conn)
 
 	assert.NoError(t, err)
-	assert.Equal(t, byte(1), conn.versionMajor)
-	assert.Equal(t, byte(22), conn.versionMinor)
+	assert.Equal(t, byte(1), conn.VersionMajor)
+	assert.Equal(t, byte(22), conn.VersionMinor)
 }
 
 func TestConnectionHeader_DecodeFailsIfHeaderIsInvalid(t *testing.T) {

@@ -7,16 +7,23 @@ import (
 )
 
 type connectionHeader struct {
-	versionMajor byte
-	versionMinor byte
+	VersionMajor byte
+	VersionMinor byte
 }
 
 func decodeConnectionHeader(reader io.Reader, header *connectionHeader) error {
 	magic := make([]byte, 8, 8)
-	_, err := reader.Read(magic)
-	if err != nil {
-		return err
+
+	remaining := 8
+	for remaining > 0 {
+		from := 8 - remaining
+		n, err := reader.Read(magic[from:])
+		if err != nil {
+			return err
+		}
+		remaining -= n
 	}
+
 	if string(magic) != "AVIONICA" {
 		return fmt.Errorf("invalid connection header: %s", magic)
 	}

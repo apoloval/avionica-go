@@ -7,9 +7,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDevice_Conn(t *testing.T) {
+	raw := newFakeRawDevice()
+	dev, err := NewDevice(raw)
+	x, y := dev.Version()
+
+	assert.NoError(t, err)
+	assert.Equal(t, byte(1), x)
+	assert.Equal(t, byte(21), y)
+}
+
 func TestDevice_EnablePort(t *testing.T) {
 	raw := newFakeRawDevice()
-	dev := NewDevice(raw)
+	dev, _ := NewDevice(raw)
 	config := NewPortConfig()
 	config.Enable(MustDataPort(0))
 	config.Enable(MustDataPort(1))
@@ -22,7 +32,7 @@ func TestDevice_EnablePort(t *testing.T) {
 
 func TestDevice_Write(t *testing.T) {
 	raw := newFakeRawDevice()
-	dev := NewDevice(raw)
+	dev, _ := NewDevice(raw)
 	err := dev.Write(MustDataPort(0x42), 0x1234)
 
 	assert.NoError(t, err)
@@ -31,7 +41,7 @@ func TestDevice_Write(t *testing.T) {
 
 func TestDevice_AddHandler(t *testing.T) {
 	raw := newFakeRawDevice()
-	dev := NewDevice(raw)
+	dev, _ := NewDevice(raw)
 	handler := dev.AddHandler(0x42)
 	raw.receive([]byte{0x42, 0x12, 0x34})
 
@@ -44,10 +54,13 @@ type fakeRawDevice struct {
 }
 
 func newFakeRawDevice() *fakeRawDevice {
-	return &fakeRawDevice{
+	dev := &fakeRawDevice{
 		output: bytes.NewBuffer([]byte{}),
-		input:  make(chan byte),
+		input:  make(chan byte, 256),
 	}
+	dev.receive([]byte("AVIONICA"))
+	dev.receive([]byte{1, 21})
+	return dev
 }
 
 func (raw *fakeRawDevice) receive(data []byte) {

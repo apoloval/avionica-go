@@ -7,8 +7,6 @@ import (
 
 	"strconv"
 
-	"time"
-
 	"github.com/apoloval/avionica-go/protocol"
 	"github.com/op/go-logging"
 )
@@ -27,8 +25,9 @@ func main() {
 		exit(err)
 	}
 
-	// Let the Arduino to boot completely
-	time.Sleep(time.Second)
+	fmt.Fprintf(os.Stderr, "Connected to Avionica board on %s\n", serialPortName)
+	x, y := device.Version()
+	fmt.Fprintf(os.Stderr, "Firmware version %d.%d\n", x, y)
 
 	portConfig := protocol.NewPortConfig()
 	portConfig.Enable(dataPort)

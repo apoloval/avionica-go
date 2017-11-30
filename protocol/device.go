@@ -16,16 +16,29 @@ type Device struct {
 	portConfig PortConfig
 	handlers   messageHandlers
 	mutex      sync.Mutex
+
+	versionMajor byte
+	versionMinor byte
 }
 
-func NewDevice(raw io.ReadWriteCloser) *Device {
+func NewDevice(raw io.ReadWriteCloser) (*Device, error) {
 	device := &Device{
 		raw:        raw,
 		portConfig: NewPortConfig(),
 		handlers:   newMessageHandlers(),
 	}
+
+	if err := device.connect(); err != nil {
+		return nil, err
+	}
+
 	go device.readLoop()
-	return device
+
+	return device, nil
+}
+
+func (dev *Device) Version() (major byte, minor byte) {
+	return dev.versionMajor, dev.versionMinor
 }
 
 func (dev *Device) ConfigurePorts(config PortConfig) error {
@@ -59,6 +72,18 @@ func (dev *Device) AddHandler(port Port) chan MessageData {
 
 func (dev *Device) Close() error {
 	return dev.raw.Close()
+}
+
+func (dev *Device) connect() error {
+	var conn connectionHeader
+	if err := decodeConnectionHeader(dev.raw, &conn); err != nil {
+		return err
+	}
+
+	dev.versionMajor = conn.VersionMajor
+	dev.versionMinor = conn.VersionMinor
+
+	return nil
 }
 
 func (dev *Device) readLoop() {
